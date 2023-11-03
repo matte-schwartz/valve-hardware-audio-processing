@@ -1,0 +1,87 @@
+declare name "Valve DSP";
+declare description "Generic speaker tuning topology used for Valve hardware.";
+declare version "0.1";
+
+import("stdfaust.lib");
+import("basics.lib");
+import("compressors.lib");
+import("filters.lib");
+import("analyzers.lib");
+import("reverbs.lib");
+import("routes.lib");
+
+peak(LP,FP,Q) = _ : fi.peak_eq(LP,FP,BP) : _
+with {
+    BP= FP/Q;
+};
+
+// 7 band EQ.
+eq(i, LP0, FP0, Q0, LP1, FP1, Q1, LP2, FP2, Q2, LP3, FP3, Q3, LP4, FP4, Q4, LP5, FP5, Q5, LP6, FP6, Q6, LP7, FP7, Q7) =
+    _ :
+    fi.peak_eq_cq(LP0, FP0, Q0) :
+    fi.peak_eq_cq(LP1, FP1, Q1) :
+    fi.peak_eq_cq(LP2, FP2, Q2) :
+    fi.peak_eq_cq(LP3, FP3, Q3) :
+    fi.peak_eq_cq(LP4, FP4, Q4) :
+    fi.peak_eq_cq(LP5, FP5, Q5) :
+    fi.peak_eq_cq(LP6, FP6, Q6) :
+    fi.peak_eq_cq(LP7, FP7, Q7) :
+    _ ;
+
+
+band_split(i, CF, LOW_G, HIGH_DELAY, HIGH_G) =
+    _ :
+    fi.crossover2LR4(CF) :
+    _, _ :
+    (_ * LOW_G), (@(HIGH_DELAY) * HIGH_G) :
+    _, _;
+
+silence = _ * 0.0;
+
+psychFunction = G * _ <: _ * (c1 - 3 * c3 + 5 * c5), _ * _ *  (2 * c2 - 8 * c4), _ * _ * _ * (4 * c3 - 5 * c5), _ * _ * _ * _ *  (8 * c4),   _ * _ * _ * _ * _ * (16 * c5) :> (1 / G) * _
+with {
+  c1 = 0.9;
+  c2 = 0.8;
+  c3 = 0.7;
+  c4 = 0.6;
+  c5 = 0.5;
+
+  G = 0.3;
+};
+
+lowPsych(lowPsych_order_f1, lowPsych_f2_freq, lowPsych_linGain) = _ , _ : + : _ * 0.5 : fi.highpass(lowPsych_order_f1,lowPsych_f2_freq/3.0) : fi.lowpassLR4(lowPsych_f2_freq) : psychFunction : fi.highpassLR4(lowPsych_f2_freq) :  _ * (-1.0) <: _*lowPsych_linGain , _*lowPsych_linGain ;
+
+
+inputFilter(lowPsych_order_f1, lowPsych_f2_freq, lowPsych_linGain) = _,_ <: fi.highpass(lowPsych_order_f1,lowPsych_f2_freq/3.0), fi.highpass(lowPsych_order_f1,lowPsych_f2_freq/3.0) , _ , _ : fi.highpassLR4(lowPsych_f2_freq), fi.highpassLR4(lowPsych_f2_freq) , lowPsych(lowPsych_order_f1, lowPsych_f2_freq, 1.0) : route(4,4,(1,1),(2,3),(3,2),(4,4)) : +, + : _*1.0 , _*1.0 ;
+
+
+
+input_compressor(IN_GAIN_DB, STRENGTH, THRESHOLD, ATTACK, RELEASE, KNEE, STEREO_LINK) =
+    co.FFcompressor_N_chan(STRENGTH, THRESHOLD, ATTACK, RELEASE, KNEE, 1, STEREO_LINK, meter, 2) : _ * ba.db2linear(IN_GAIN_DB), _ * ba.db2linear(IN_GAIN_DB)
+with
+{
+    meter = _;
+};
+
+
+output_compressor(O_STRENGTH, O_THRESHOLD, O_ATTACK, O_RELEASE, O_KNEE, O_STEREO_LINK) =
+    co.FFcompressor_N_chan(O_STRENGTH, O_THRESHOLD, O_ATTACK, O_RELEASE, O_KNEE, 1, O_STEREO_LINK, meter, 2) : _ , _ 
+with
+{
+    meter = _;
+};
+
+speaker_tuning(IN_GAIN_DB, IN_COMP_STRENGTH, IN_COMP_THRESHOLD, IN_COMP_ATTACK, IN_COMP_RELEASE, IN_COMP_KNEE, IN_COMP_STEREO_LINK,
+               lowPsych_order_f1, lowPsych_f2_freq, lowPsych_linGain,
+               LP0, FP0, Q0, LP1, FP1, Q1, LP2, FP2, Q2, LP3, FP3, Q3, LP4, FP4, Q4, LP5, FP5, Q5, LP6, FP6, Q6, LP7, FP7, Q7, OUT_COMP_STRENGTH, OUT_COMP_THRESHOLD, OUT_COMP_ATTACK, OUT_COMP_RELEASE, OUT_COMP_KNEE, OUT_COMP_STEREO_LINK) =
+//  Left Channel                                                                                          Right Channel
+    _,                                                                                                    _                                   :
+    inputFilter(lowPsych_order_f1, lowPsych_f2_freq, lowPsych_linGain)  :
+    input_compressor(IN_GAIN_DB, IN_COMP_STRENGTH, IN_COMP_THRESHOLD, IN_COMP_ATTACK, IN_COMP_RELEASE, IN_COMP_KNEE, IN_COMP_STEREO_LINK)     :
+    eq(1, LP0, FP0, Q0, LP1, FP1, Q1, LP2, FP2, Q2, LP3, FP3, Q3, LP4, FP4, Q4, LP5, FP5, Q5, LP6, FP6, Q6, LP7, FP7, Q7), eq(1, LP0, FP0, Q0, LP1, FP1, Q1, LP2, FP2, Q2, LP3, FP3, Q3, LP4, FP4, Q4, LP5, FP5, Q5, LP6, FP6, Q6, LP7, FP7, Q7) : 
+	output_compressor(OUT_COMP_STRENGTH, OUT_COMP_THRESHOLD, OUT_COMP_ATTACK, OUT_COMP_RELEASE, OUT_COMP_KNEE, OUT_COMP_STEREO_LINK)          :
+    _ * ba.db2linear(-6.0),                                                                                 _ * ba.db2linear(-6.0);
+
+
+mic_tuning(IN_GAIN_DB, LP0, FP0, Q0, LP1, FP1, Q1, COMP_STRENGTH, COMP_THRESHOLD, COMP_ATTACK, COMP_RELEASE, COMP_KNEE) =
+    _ : peak(LP0, FP0, Q0) : peak(LP1, FP1, Q1) : co.peak_compression_gain_mono_db(COMP_STRENGTH, COMP_THRESHOLD, COMP_ATTACK, COMP_RELEASE, COMP_KNEE, 0) : _;

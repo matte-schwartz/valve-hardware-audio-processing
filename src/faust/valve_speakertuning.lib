@@ -1,0 +1,92 @@
+declare name "ValveSpeakerTuning";
+declare description "Generic speaker tuning topology used for Valve hardware.";
+declare version "0.1";
+
+import("stdfaust.lib");
+import("basics.lib");
+import("compressors.lib");
+import("filters.lib");
+import("analyzers.lib");
+import("reverbs.lib");
+
+peak(LP,FP,Q) = fi.peak_eq(LP,FP,BP)
+with {
+    BP= FP/Q;
+};
+
+// peak(12.0, 250, 1.7) : peak(1.5, 800, 1.7) : peak(-1.5, 1200, 1) : peak(-8.5, 8000, 2) : peak(8.0, 18000, 1.0) : peak(3, 500, 1) : peak(-2, 850, 1);
+// 7 band EQ.
+eq(i, LP0, FP0, Q0, LP1, FP1, Q1, LP2, FP2, Q2, LP3, FP3, Q3, LP4, FP4, Q4, LP5, FP5, Q5, LP6, FP6, Q6) = 
+    peak(LP0, FP0, Q0) : 
+    peak(LP1, FP1, Q1) : 
+    peak(LP2, FP2, Q2) : 
+    peak(LP3, FP3, Q3) : 
+    peak(LP4, FP4, Q4) : 
+    peak(LP5, FP5, Q5) : 
+    peak(LP6, FP6, Q6);
+
+/*
+
+    CF = 550;
+
+    LOW_G = 5.0; // 5x linear input gain on the lowend.
+    
+    HIGH_DELAY= 0; // for now, this is optional. may be used for phase alignment if we add lookahead.
+    HIGH_G= 1.0;
+
+*/
+band_split(i, CF, LOG_G, HIGH_DELAY, HIGH_G) = 
+    fi.crossover2LR4(CF) :
+    _, _ :
+    (_ * LOW_G), (@(HIGH_DELAY) * HIGH_G);
+
+silence = _ * 0.0;
+
+/*
+    Strength = 0.40;
+    Threshold = -18;
+    Attack = 0.01;
+    Release = 0.8;
+    Knee = 0.1;
+    StereoLink = 1.0;
+*/
+low_comp(i, STRENGTH, THRESHOLD, ATTACK, RELEASE, KNEE, STEREO_LINK) = 
+    _,_,_,_ <: 
+    _,_,_,_, ba.selectn(2, 0), ba.selectn(2,0) : 
+    ba.selectn(2,1), ba.selectn(2,1),co.FFcompressor_N_chan(STRENGTH, THRESHOLD, ATTACK, RELEASE, KNEE, 1, STEREO_LINK, meter, 2) :> 
+    _, _ 
+with{
+    meter = _;
+};
+
+/*
+    IN_GAIN_DB = 6.0;
+    Strength = 0.40;
+    Threshold = -18;
+    Attack = 0.01;
+    Release = 0.8;
+    Knee = 0.1;
+    StereoLink = 1.0;
+*/
+input_compressor(IN_GAIN_DB, STRENGTH, THRESHOLD, ATTACK, RELEASE, KNEE, STEREO_LINK) = 
+    _ * ba.db2linear(IN_GAIN_DB), _ * ba.db2linear(IN_GAIN_DB) : 
+    co.FFcompressor_N_chan(STRENGTH, THRESHOLD, ATTACK, RELEASE, KNEE, 1, STEREO_LINK, meter, 2)
+with
+{
+    meter = _;
+};
+
+
+// hipass 300Hz
+speaker_tuning(IN_GAIN_DB, IN_COMP_STRENGTH, IN_COMP_THRESHOLD, IN_COMP_ATTACK, IN_COMP_RELEASE, IN_COMP_KNEE, IN_COMP_STEREO_LINK,
+               IN_HIPASS_CUTOFF_HZ,
+               LP0, FP0, Q0, LP1, FP1, Q1, LP2, FP2, Q2, LP3, FP3, Q3, LP4, FP4, Q4, LP5, FP5, Q5, LP6, FP6, Q6,
+               BANDSPLIT_CF, BANDSPLIT_LOW_G, BANDSPLIT_HIGH_DELAY, BANDSPLIT_HIGH_G,
+               LOWCOMP_STRENGTH, LOWCOMP_THRESHOLD, LOWCOMP_ATTACK, LOWCOMP_RELEASE, LOWCOMP_KNEE, LOWCOMP_STEREOLINK) = 
+    input_compressor(IN_GAIN_DB, IN_COMP_STRENGTH, IN_COMP_THRESHOLD, IN_COMP_ATTACK, IN_COMP_RELEASE, IN_COMP_KNEE, STEREO_LINK) : 
+    fi.highpass(4, IN_HIPASS_CUTOFF_HZ), fi.highpass(4, IN_HIPASS_CUTOFF_HZ) : 
+    eq(LP0, FP0, Q0, LP1, FP1, Q1, LP2, FP2, Q2, LP3, FP3, Q3, LP4, FP4, Q4, LP5, FP5, Q5, LP6, FP6, Q6), eq(LP0, FP0, Q0, LP1, FP1, Q1, LP2, FP2, Q2, LP3, FP3, Q3, LP4, FP4, Q4, LP5, FP5, Q5, LP6, FP6, Q6) : 
+    band_split(2, BANDSPLIT_CF, BANDSPLIT_LOW_G, BANDSPLIT_HIGH_DELAY, BANDSPLIT_HIGH_G), band_split(2, BANDSPLIT_CF, BANDSPLIT_LOW_G, BANDSPLIT_HIGH_DELAY, BANDSPLIT_HIGH_G) : 
+    low_comp(3, LOWCOMP_STRENGTH, LOWCOMP_THRESHOLD, LOWCOMP_ATTACK, LOWCOMP_RELEASE, LOWCOMP_KNEE, LOWCOMP_STEREOLINK);
+
+

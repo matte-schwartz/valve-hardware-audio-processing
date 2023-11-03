@@ -1,0 +1,22 @@
+[submodule "build_sof/sof"]
+	path = build_sof/sof
+	url = https://gitlab.steamos.cloud/valve/galileo/sof-private.git
+	branch = amd-vangogh-stable
+[submodule "build_sof/alsa-lib"]
+	path = build_sof/alsa-lib
+	url = git://git.alsa-project.org/alsa-lib
+[submodule "build_sof/xtensa-overlay"]
+	path = build_sof/xtensa-overlay
+	url = https://github.com/thesofproject/xtensa-overlay
+	branch = sof-gcc10.2
+[submodule "build_sof/crosstool-ng"]
+	path = build_sof/crosstool-ng
+	url = https://github.com/thesofproject/crosstool-ng
+	branch = sof-gcc10x
+[submodule "build_sof/newlib-xtensa"]
+	path = build_sof/newlib-xtensa
+	url = https://github.com/jcmvbkbc/newlib-xtensa
+	branch = xtensa
+[submodule "build_sof/alsa-utils"]
+	path = build_sof/alsa-utils
+	url = git://git.alsa-project.org/alsa-utils
