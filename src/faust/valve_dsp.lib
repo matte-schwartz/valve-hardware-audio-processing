@@ -84,4 +84,11 @@ speaker_tuning(IN_GAIN_DB, IN_COMP_STRENGTH, IN_COMP_THRESHOLD, IN_COMP_ATTACK, 
 
 
 mic_tuning(IN_GAIN_DB, LP0, FP0, Q0, LP1, FP1, Q1, COMP_STRENGTH, COMP_THRESHOLD, COMP_ATTACK, COMP_RELEASE, COMP_KNEE) =
-    _ : peak(LP0, FP0, Q0) : peak(LP1, FP1, Q1) : co.peak_compression_gain_mono_db(COMP_STRENGTH, COMP_THRESHOLD, COMP_ATTACK, COMP_RELEASE, COMP_KNEE, 0) : _;
+    _ : peak(LP0, FP0, Q0) : peak(LP1, FP1, Q1) :
+        _ * ba.db2linear(IN_GAIN_DB) :
+        co.FFcompressor_N_chan(COMP_STRENGTH, COMP_THRESHOLD, COMP_ATTACK, COMP_RELEASE, COMP_KNEE, 1, 1, meter, 1) :
+        _
+with
+{
+    meter = _;
+};
