@@ -57,13 +57,13 @@ rebuild: clean build
 
 install:
 	@echo "Installing LV2 plugins to plugin path."
-	@./install_plugins.sh
-	@./setup_pipewire.sh
-	@./setup_wireplumber.sh
-	@./setup_ucm2.sh
-	@./setup_sof_fw.sh
+	@./scripts/install_plugins.sh
+	@./scripts/setup_pipewire.sh
+	@./scripts/setup_wireplumber.sh
+	@./scripts/setup_ucm2.sh
+	@./scripts/setup_sof_fw.sh
 
 benchmark:
 	@echo "Benchmarking Faust Scripts..."
-	./benchmark_faust.sh
+	./scripts/benchmark_faust.sh
 
