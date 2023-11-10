@@ -62,3 +62,8 @@ install:
 	@./setup_wireplumber.sh
 	@./setup_ucm2.sh
 	@./setup_sof_fw.sh
+
+benchmark:
+	@echo "Benchmarking Faust Scripts..."
+	./benchmark_faust.sh
+
