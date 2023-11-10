@@ -44,7 +44,7 @@ all: clean
 	@mv src/faust/valve_deck_microphone-svg bin/svg/valve_deck_microphone
 	@mkdir -p bin/lv2/$(FAUST_COMPILER)
 	@mv src/faust/valve_deck_speakers.lv2 bin/lv2/$(FAUST_COMPILER)/valve_deck_speakers.lv2
-	@mv src/faust/valve_binaural.lv2 bin/lv2/$(FAUST_COMPPILER)/valve_binaural.lv2
+	@mv src/faust/valve_binaural.lv2 bin/lv2/$(FAUST_COMPILER)/valve_binaural.lv2
 	@mv src/faust/valve_deck_microphone.lv2 bin/lv2/$(FAUST_COMPILER)/valve_deck_microphone.lv2
 
 .PHONY: clean
