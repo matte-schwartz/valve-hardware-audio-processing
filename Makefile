@@ -31,9 +31,9 @@ all: clean
 	@cp --no-preserve=mode -r /usr/include/boost temp_includes/boost
 	@cp --no-preserve=mode -r /usr/include/lv2 temp_includes/lv2
 	@echo "Building Faust plugins..."
-	( CXX=$(FAUST_COMPILER) CXXFLAGS+=" -Itemp_includes " faust2lv2 -vec src/faust/valve_deck_speakers.dsp)
-	( CXX=$(FAUST_COMPILER) CXXFLAGS+=" -Itemp_includes " faust2lv2 -vec src/faust/valve_binaural.dsp)
-	( CXX=$(FAUST_COMPILER) CXXFLAGS+=" -Itemp_includes " faust2lv2 -vec src/faust/valve_deck_microphone.dsp)
+	( CXX=$(FAUST_COMPILER) CXXFLAGS+=" -Itemp_includes " faust2lv2 src/faust/valve_deck_speakers.dsp)
+	( CXX=$(FAUST_COMPILER) CXXFLAGS+=" -Itemp_includes " faust2lv2 src/faust/valve_binaural.dsp)
+	( CXX=$(FAUST_COMPILER) CXXFLAGS+=" -Itemp_includes " faust2lv2 src/faust/valve_deck_microphone.dsp)
 	@echo "Generating Faust plugin documentation..."
 	faust2svg src/faust/valve_deck_speakers.dsp
 	faust2svg src/faust/valve_binaural.dsp
