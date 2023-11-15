@@ -10,12 +10,15 @@ bluez_monitor.properties = {
   -- disabled: 00001108-0000-1000-8000-00805f9b34fb hsp_hs
   -- disabled: 0000111e-0000-1000-8000-00805f9b34fb hfp_hs
   -- disabled: 0000111f-0000-1000-8000-00805f9b34fb hfp_ag
+  -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> * <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  -- NOTE: check hfphsp-backend below as that also affects hs/hf profiles
+  -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> * <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   ["bluez5.headset-roles"] = "[ hsp_ag ]",
 
   -- HFP/HSP backend (default: native).
   -- Available values: any, none, hsphfpd, ofono, native
   -- setting this to "none" disables all headset roles
-  ["bluez5.hfphsp-backend"] = "native",
+  ["bluez5.hfphsp-backend"] = "none",
 
   -- Disable dummy AVRCP player
   ["bluez5.dummy-avrcp-player"] = false
