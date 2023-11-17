@@ -42,7 +42,6 @@ table.insert (alsa_monitor.rules, {
   },
   apply_properties = {
     ["session.suspend-timeout-seconds"] = 0,
-    ["api.alsa.period-size"]   = 256,
     ["api.alsa.headroom"]      = 1024,
 
   }
