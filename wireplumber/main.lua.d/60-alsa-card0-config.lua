@@ -18,7 +18,6 @@ table.insert (alsa_monitor.rules, {
   apply_properties = {
     ["priority.driver"]        = 900,
     ["priority.session"]       = 900,
-    ["api.alsa.period-size"]   = 256,
     ["api.alsa.headroom"]      = 1024,
     ["session.suspend-timeout-seconds"] = 0
   }
