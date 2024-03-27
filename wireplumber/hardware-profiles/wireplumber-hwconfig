@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -eu
+
 shopt -s nullglob
 
 declare maker
@@ -8,7 +9,7 @@ declare product
 declare profile
 declare -r prdir=/usr/share/wireplumber/hardware-profiles
 declare -r dmidir=/sys/devices/virtual/dmi/id
-declare -ar confdirs=(bluetooth.lua.d main.lua.d policy.lua.d)
+declare -ar confdirs=({bluetooth,main,policy}.lua.d wireplumber.conf.d)
 
 dmi_info ()
 {
@@ -47,7 +48,7 @@ install_hwprofile ()
     local -r prpath="$1"
     local -r runconf=/run/wireplumber
     local confd
-    local conffile
+    local cffile
 
     echo "Installing wireplumber hardware profile from '$prpath' in $runconf"
 
@@ -58,10 +59,20 @@ install_hwprofile ()
         if [ -d "$prpath"/"$confd" ]
         then
             mkdir -p $runconf/"$confd"
-            for conffile in "$prpath"/"$confd"/*.lua
-            do
-                cp -av $conffile $runconf/"$confd"
-            done
+            case $confd in
+                *.lua.d)
+                    for cffile in "$prpath"/"$confd"/*.lua
+                    do
+                        [ -f "$cffile" ] && cp -av "$cffile" $runconf/"$confd"
+                    done
+                    ;;
+                *.conf.d)
+                    for cffile in "$prpath"/"$confd"/*.conf
+                    do
+                        [ -f "$cffile" ] && cp -av "$cffile" $runconf/"$confd"
+                    done
+                    ;;
+            esac
         fi
     done
 
