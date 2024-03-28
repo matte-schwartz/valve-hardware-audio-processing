@@ -1,0 +1,131 @@
+#!/bin/bash
+
+set -eu
+
+shopt -s nullglob
+
+declare maker
+declare product
+declare profile
+declare -r prdir=/usr/share/pipewire/hardware-profiles
+declare -r dmidir=/sys/devices/virtual/dmi/id
+declare -ar confdirs=(client.conf.d
+                      client-rt.conf.d
+                      jack.conf.d
+                      minimal.conf.d
+                      pipewire.conf.d
+                      pipewire-pulse.conf.d)
+
+dmi_info ()
+{
+    local -r key="$1"
+    local file
+
+    case $key in
+        system-manufacturer)
+            file=sys_vendor
+            ;;
+        system-*)
+            file="${key#system-}"
+            file="${file//-/_}"
+            ;;
+        *)
+            file="${file//-/_}"
+            ;;
+    esac
+
+    file=$dmidir/"$file"
+
+    if [ -r "$file" ]
+    then
+        cat "$file"
+    elif type -p dmidecode >/dev/null 2>&1
+    then
+        dmidecode -s "$key"
+    else
+        echo "Neither sysfs DMI $dmidir nor dmidecode are available" >&2
+        echo UNKNOWN
+    fi
+}
+
+install_hwprofile ()
+{
+    local -r prpath="$1"
+    local -r runconf=/run/pipewire
+    local confd
+    local cffile
+
+    echo "Installing pipewire hardware profile from '$prpath' in $runconf"
+
+    rm -rf $runconf
+
+    for confd in "${confdirs[@]}"
+    do
+        if [ -d "$prpath"/"$confd" ]
+        then
+            mkdir -p $runconf/"$confd"
+
+            for cffile in "$prpath"/"$confd"/*.conf
+            do
+                [ -f "$cffile" ] && cp -av "$cffile" $runconf/"$confd"
+            done
+        fi
+    done
+
+    cat - <<EOF > $runconf/README
+This configuration was:
+
+ - installed in $runconf
+ - by $0
+ - from $prpath
+
+It will be regenerated every time the system restarts.
+
+To alter it permanently either:
+ - edit $prpath
+ - override in \$XDG_CONFIG_HOME/pipewire/
+EOF
+}
+
+unidentified ()
+{
+    echo "$0: System manufacturer and product not identified" >&2
+    echo "  run this command with superuser privileges"
+    exit 1
+}
+
+select_profile ()
+{
+    if ! maker=$(dmi_info system-manufacturer)
+    then
+        unidentified
+    fi
+
+    if ! product=$(dmi_info system-product-name)
+    then
+        unidentified
+    fi
+
+    maker="${maker,,}"
+    product="${product,,}"
+    profile="${maker}-${product}"
+
+    echo "Checking for wireplumber hardware profile matching $maker, $product"
+
+    if [ -d "$prdir"/"$profile" ]
+    then
+        install_hwprofile "$prdir"/"$profile"
+    elif [ -d "$prdir"/default ]
+    then
+        install_hwprofile "$prdir"/default
+    fi
+
+    return 0
+}
+
+if [ ! -d /usr/share/wireplumber/hardware-profiles ]
+then
+    exit 0
+fi
+
+select_profile
