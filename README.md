@@ -15,6 +15,7 @@ This includes:
 
 Generally, to build this package we require the following packages:
 
+Arch Linux:
 1. base-devel 
 2. glibc
 3. faust
@@ -24,9 +25,21 @@ Generally, to build this package we require the following packages:
 7. linux-api-headers
 8. qt5-base
 
+Debian:
+1. build-essential
+2. faust
+3. ladspa-sdk
+4. lv2-dev
+5. libboost-all-dev
+6. qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+
 With these installed, you can compile lv2 plugins from our faust scripts using make:
 
 `make FAUSTINC="/usr/include/faust"  FAUSTLIB="/usr/share/faust"` 
+
+Note: on Debian it seems you have to pass in the SHELL:
+
+`make SHELL="/bin/bash" FAUSTINC="/usr/include/faust"  FAUSTLIB="/usr/share/faust"` 
 
 These can be installed to the current device using `sudo make intall`. Alternatively, they can be installed to a pacman-style pkg directory like so:
 
