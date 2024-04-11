@@ -7,9 +7,14 @@ shopt -s nullglob
 declare maker
 declare product
 declare profile
-declare -r prdir=/usr/share/wireplumber/hardware-profiles
+declare -r prdir=/usr/share/pipewire/hardware-profiles
 declare -r dmidir=/sys/devices/virtual/dmi/id
-declare -ar confdirs=({bluetooth,main,policy}.lua.d wireplumber.conf.d)
+declare -ar confdirs=(client.conf.d
+                      client-rt.conf.d
+                      jack.conf.d
+                      minimal.conf.d
+                      pipewire.conf.d
+                      pipewire-pulse.conf.d)
 
 dmi_info ()
 {
@@ -46,11 +51,11 @@ dmi_info ()
 install_hwprofile ()
 {
     local -r prpath="$1"
-    local -r runconf=/run/wireplumber
+    local -r runconf=/run/pipewire
     local confd
     local cffile
 
-    echo "Installing wireplumber hardware profile from '$prpath' in $runconf"
+    echo "Installing pipewire hardware profile from '$prpath' in $runconf"
 
     rm -rf $runconf
 
@@ -59,20 +64,11 @@ install_hwprofile ()
         if [ -d "$prpath"/"$confd" ]
         then
             mkdir -p $runconf/"$confd"
-            case $confd in
-                *.lua.d)
-                    for cffile in "$prpath"/"$confd"/*.lua
-                    do
-                        [ -f "$cffile" ] && cp -av "$cffile" $runconf/"$confd"
-                    done
-                    ;;
-                *.conf.d)
-                    for cffile in "$prpath"/"$confd"/*.conf
-                    do
-                        [ -f "$cffile" ] && cp -av "$cffile" $runconf/"$confd"
-                    done
-                    ;;
-            esac
+
+            for cffile in "$prpath"/"$confd"/*.conf
+            do
+                [ -f "$cffile" ] && cp -av "$cffile" $runconf/"$confd"
+            done
         fi
     done
 
@@ -87,7 +83,7 @@ It will be regenerated every time the system restarts.
 
 To alter it permanently either:
  - edit $prpath
- - override in \$XDG_CONFIG_DIR/wireplumber/
+ - override in \$XDG_CONFIG_HOME/pipewire/
 EOF
 }
 

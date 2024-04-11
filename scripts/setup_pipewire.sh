@@ -1,11 +1,13 @@
 
-destination_dir=$DEST_DIR/usr/share/pipewire/pipewire.conf.d
+destination_dir=$DEST_DIR/usr/share/pipewire
+systemd_dir=$DEST_DIR/usr/lib/systemd/system
 
 echo "setting up pipewire configuration."
+
 mkdir -p $destination_dir
-cp -r pipewire-confs/filter-chain-speakers.conf $destination_dir/filter-chain-sink.conf
-cp -r pipewire-confs/filter-chain-mic.conf      $destination_dir/filter-chain.conf
-cp -r pipewire-confs/virtual-sink.conf          $destination_dir/virtual-sink.conf
-cp -r pipewire-confs/virtual-source.conf        $destination_dir/virtual-source.conf
+cp -r pipewire-confs/hardware-profiles $destination_dir
+
+mkdir -p $systemd_dir
+cp -a pipewire-confs/systemd/system/* $systemd_dir
 echo "pipewire setup complete. reboot your machine."
 
