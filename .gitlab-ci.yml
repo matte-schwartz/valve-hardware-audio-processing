@@ -13,7 +13,7 @@ build-job:       # This job runs in the build stage, which runs first.
     - pacman -Syu
     - pacman -S --noconfirm base-devel
     - pacman -S --noconfirm lv2 faust boost linux-api-headers qt5-base
-    - make
+    - FAUSTINC=/usr/include/faust make
 
 unit-test-job:   # This job runs in the test stage.
   image: ${CI_REGISTRY}/steam/steamos-docker-images/jupiter-main/image-builder
@@ -26,5 +26,5 @@ unit-test-job:   # This job runs in the test stage.
     - pacman -Syu
     - pacman -S --noconfirm base-devel
     - pacman -S --noconfirm lv2 faust boost linux-api-headers qt5-base
-    - make benchmark
+    - FAUSTINC=/usr/include/faust make benchmark
 
