@@ -10,7 +10,7 @@ build-job:       # This job runs in the build stage, which runs first.
     - internal
     - linux
   script:
-    - pacman -Syu
+    - pacman -Syu --noconfirm
     - pacman -S --noconfirm base-devel
     - pacman -S --noconfirm lv2 faust boost linux-api-headers qt5-base
     - FAUSTINC=/usr/include/faust make
@@ -23,7 +23,7 @@ unit-test-job:   # This job runs in the test stage.
     - internal
     - linux
   script:
-    - pacman -Syu
+    - pacman -Syu --noconfirm
     - pacman -S --noconfirm base-devel
     - pacman -S --noconfirm lv2 faust boost linux-api-headers qt5-base
     - FAUSTINC=/usr/include/faust make benchmark
