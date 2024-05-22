@@ -6,9 +6,7 @@ build-job:       # This job runs in the build stage, which runs first.
   image: ${CI_REGISTRY}/steam/steamos-docker-images/jupiter-main/image-builder
   stage: build
   tags:
-    - autoscaled
-    - isolated
-    - linux
+    - x86_64-linux-kvm-docker
   script:
     - pacman -Syu --noconfirm
     - pacman -S --noconfirm base-devel
@@ -19,9 +17,7 @@ unit-test-job:   # This job runs in the test stage.
   image: ${CI_REGISTRY}/steam/steamos-docker-images/jupiter-main/image-builder
   stage: test    # It only starts when the job in the build stage completes successfully.
   tags:
-    - autoscaled
-    - isolated
-    - linux
+    - x86_64-linux-kvm-docker
   script:
     - pacman -Syu --noconfirm
     - pacman -S --noconfirm base-devel
