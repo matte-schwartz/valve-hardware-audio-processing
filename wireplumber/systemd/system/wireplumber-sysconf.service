@@ -9,7 +9,7 @@
 
 [Unit]
 Description=Hardware Specific Wireplumber Configuration
-After=multi-user.target
+Before=multi-user.target
 Requisite=multi-user.target
 ConditionPathIsDirectory=/run
 Before=shutdown.target
