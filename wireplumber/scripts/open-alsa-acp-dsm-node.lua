@@ -1,3 +1,10 @@
+-- This is used for forwarding VI sense data from our speaker amps
+-- (which look like a separate capture device) so that we can do more
+-- granular speaker protection on the audio DSP.
+
+-- It is required on the OLED model deck.
+-- It is NOT required on the LCD model deck.
+
 om = ObjectManager {
   Interest { type = "node",
     Constraint { "media.class", "matches", "Audio/*" }
