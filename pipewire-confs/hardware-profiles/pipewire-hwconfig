@@ -51,6 +51,7 @@ dmi_info ()
 install_hwprofile ()
 {
     local -r prpath="$1"
+    local -r hwprof="${2:-}"
     local -r runconf=/run/pipewire
     local confd
     local cffile
@@ -78,6 +79,7 @@ This configuration was:
  - installed in $runconf
  - by $0
  - from $prpath
+ - requested hardware profile was: "${hwprof:-}"
 
 It will be regenerated every time the system restarts.
 
@@ -114,10 +116,10 @@ select_profile ()
 
     if [ -d "$prdir"/"$profile" ]
     then
-        install_hwprofile "$prdir"/"$profile"
+        install_hwprofile "$prdir"/"$profile" "$profile"
     elif [ -d "$prdir"/default ]
     then
-        install_hwprofile "$prdir"/default
+        install_hwprofile "$prdir"/default "$profile"
     fi
 
     return 0
